@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Desafio Relampago (Demo)
 
-## Getting Started
+Mini quiz por rondas:
 
-First, run the development server:
+1. El profe crea una ronda (pregunta + 4 opciones + duracion).
+2. Abre la ronda: el servidor fija `openedAt` y `closesAt`.
+3. Estudiantes responden una vez.
+4. Al cerrar (o expirar), se muestran estadisticas (% por opcion) y top.
+
+## Stack
+
+- Next.js (App Router)
+- Prisma
+- Postgres en Vercel (Vercel Postgres)
+
+## Setup
+
+1. Crea una base en Vercel: Storage -> Postgres.
+2. Copia el connection string a `DATABASE_URL`.
+3. Local: crea `.env.local` con:
+
+```bash
+DATABASE_URL="..."
+```
+
+4. Aplica el schema:
+
+```bash
+npm run db:push
+```
+
+5. Ejecuta:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Rutas
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `/` home
+- `/play` estudiante
+- `/admin` panel (sin auth, demo)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Endpoints
 
-## Learn More
+- `POST /api/demo/join` -> crea participante
+- `GET /api/demo/round/current` -> ronda actual (open/closed)
+- `POST /api/demo/round/answer` -> responder (1 vez)
+- `GET /api/demo/round/results?roundId=...` -> stats + top
 
-To learn more about Next.js, take a look at the following resources:
+- `GET /api/admin/round/list`
+- `POST /api/admin/round/create`
+- `POST /api/admin/round/open`
+- `POST /api/admin/round/close`
+- `GET /api/admin/round/results?roundId=...`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Nota sobre el cronometro server-side
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+No hay worker/cron en esta demo. La ronda se auto-cierra "on demand":
 
-## Deploy on Vercel
+- cuando se consulta `current` / `results`
+- o cuando llega una respuesta
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Eso mantiene el timer autoritativo sin procesos en background.

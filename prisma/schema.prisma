@@ -1,0 +1,80 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum RoundStatus {
+  DRAFT
+  OPEN
+  CLOSED
+}
+
+enum AnswerOption {
+  A
+  B
+  C
+  D
+}
+
+model QuizRound {
+  id            String      @id @default(cuid())
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  status        RoundStatus @default(DRAFT)
+
+  question      String
+  optionA       String
+  optionB       String
+  optionC       String
+  optionD       String
+  correctOption AnswerOption?
+
+  durationMs    Int         @default(15000)
+  openedAt      DateTime?
+  closesAt      DateTime?
+  closedAt      DateTime?
+
+  responses     QuizResponse[]
+
+  @@index([status, createdAt])
+}
+
+model Participant {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name      String
+
+  responses QuizResponse[]
+}
+
+model QuizResponse {
+  id            String       @id @default(cuid())
+  createdAt     DateTime     @default(now())
+
+  roundId       String
+  participantId String
+  option        AnswerOption
+  submittedAt   DateTime     @default(now())
+
+  // milliseconds since round opened (server derived)
+  latencyMs     Int?
+
+  round         QuizRound    @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  participant   Participant  @relation(fields: [participantId], references: [id], onDelete: Cascade)
+
+  @@unique([roundId, participantId])
+  @@index([roundId])
+  @@index([participantId])
+}
