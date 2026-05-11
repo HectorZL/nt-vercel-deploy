@@ -195,14 +195,14 @@ export default function PlayPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-6">
-      <div className="max-w-2xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+      <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-4xl font-bold text-gray-800">Desafío Relámpago</h1>
           <Link
             href="/admin"
-            className="text-sm text-blue-600 hover:underline"
+            className="text-blue-600 hover:underline text-lg"
           >
             Admin Panel
           </Link>
@@ -228,7 +228,7 @@ export default function PlayPage() {
                 value={participantName}
                 onChange={(e) => setParticipantName(e.target.value)}
                 placeholder="Your name"
-                className="w-full px-6 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-lg"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 autoFocus
               />
 
@@ -313,7 +313,7 @@ export default function PlayPage() {
             <button
               onClick={handleSubmit}
               disabled={!selectedOption || submitting}
-              className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-4 rounded-lg text-lg transition"
+              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-4 rounded-lg text-lg transition"
             >
               {submitting ? 'Submitting...' : 'Submit Answer'}
             </button>
