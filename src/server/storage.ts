@@ -11,16 +11,21 @@ export function isOption(v: unknown): v is Option {
 
 export type RoundStatus = 'DRAFT' | 'OPEN' | 'CLOSED'
 
-export interface QuizRound {
+export interface Question {
   id: string
-  createdAt: Date
-  status: RoundStatus
   question: string
   optionA: string
   optionB: string
   optionC: string
   optionD: string
   correctOption: Option | null
+}
+
+export interface QuizRound {
+  id: string
+  createdAt: Date
+  status: RoundStatus
+  questions: Question[]
   durationMs: number
   openedAt: Date | null
   closesAt: Date | null
@@ -37,6 +42,7 @@ export interface QuizResponse {
   id: string
   roundId: string
   participantId: string
+  questionId: string
   option: Option
   submittedAt: Date
   latencyMs: number | null
@@ -50,24 +56,29 @@ const responses = new Map<string, QuizResponse>()
 export const storage = {
   // Rounds
   createRound(data: {
-    question: string
-    optionA: string
-    optionB: string
-    optionC: string
-    optionD: string
-    correctOption: Option | null
+    questions: Array<{
+      question: string
+      optionA: string
+      optionB: string
+      optionC: string
+      optionD: string
+      correctOption: Option | null
+    }>
     durationMs: number
   }): QuizRound {
     const round: QuizRound = {
       id: nanoid(),
       createdAt: new Date(),
       status: 'DRAFT',
-      question: data.question,
-      optionA: data.optionA,
-      optionB: data.optionB,
-      optionC: data.optionC,
-      optionD: data.optionD,
-      correctOption: data.correctOption,
+      questions: data.questions.map((q) => ({
+        id: nanoid(),
+        question: q.question,
+        optionA: q.optionA,
+        optionB: q.optionB,
+        optionC: q.optionC,
+        optionD: q.optionD,
+        correctOption: q.correctOption,
+      })),
       durationMs: data.durationMs,
       openedAt: null,
       closesAt: null,
@@ -126,22 +137,36 @@ export const storage = {
     return participants.get(id) ?? null
   },
 
+  // Questions
+  getQuestion(roundId: string, questionId: string): Question | null {
+    const round = rounds.get(roundId)
+    if (!round) return null
+    return round.questions.find((q) => q.id === questionId) ?? null
+  },
+
   // Responses
   createResponse(data: {
     roundId: string
     participantId: string
+    questionId: string
     option: Option
   }): QuizResponse | null {
+    // Guard: round must exist
     const round = rounds.get(data.roundId)
     if (!round) return null
 
-    // Check for duplicate
+    // Guard: question must exist in round
+    const question = round.questions.find((q) => q.id === data.questionId)
+    if (!question) return null
+
+    // Guard: no duplicate answer per participant per question
     for (const resp of responses.values()) {
       if (
         resp.roundId === data.roundId &&
-        resp.participantId === data.participantId
+        resp.participantId === data.participantId &&
+        resp.questionId === data.questionId
       ) {
-        return null // Already answered
+        return null // Already answered this question
       }
     }
 
@@ -154,6 +179,7 @@ export const storage = {
       id: nanoid(),
       roundId: data.roundId,
       participantId: data.participantId,
+      questionId: data.questionId,
       option: data.option,
       submittedAt: now,
       latencyMs,
@@ -162,8 +188,22 @@ export const storage = {
     return response
   },
 
-  getResponsesByRound(roundId: string): QuizResponse[] {
-    return Array.from(responses.values()).filter((r) => r.roundId === roundId)
+  getResponsesByRound(roundId: string, questionId?: string): QuizResponse[] {
+    return Array.from(responses.values()).filter(
+      (r) => r.roundId === roundId && (!questionId || r.questionId === questionId)
+    )
+  },
+
+  getResponsesByQuestion(roundId: string, questionId: string): QuizResponse[] {
+    return Array.from(responses.values()).filter(
+      (r) => r.roundId === roundId && r.questionId === questionId
+    )
+  },
+
+  getParticipantResponses(roundId: string, participantId: string): QuizResponse[] {
+    return Array.from(responses.values()).filter(
+      (r) => r.roundId === roundId && r.participantId === participantId
+    )
   },
 
   // Utilities

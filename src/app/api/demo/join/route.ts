@@ -1,4 +1,4 @@
-import { storage, type Option } from '@/server/storage'
+import { storage } from '@/server/storage'
 import { NextResponse } from 'next/server'
 
 export const runtime = 'nodejs'

@@ -65,7 +65,7 @@ describe('quiz utilities (unit tests)', () => {
       const closesAt = new Date(now.getTime() + 5000)
 
       const state = computeRoundState({
-        status: 'CLOSED' as any,
+        status: 'CLOSED' as const,
         openedAt,
         closesAt,
         closedAt: now,
@@ -77,7 +77,7 @@ describe('quiz utilities (unit tests)', () => {
 
     it('should handle null dates (DRAFT status)', () => {
       const state = computeRoundState({
-        status: 'DRAFT' as any,
+        status: 'DRAFT' as const,
         openedAt: null,
         closesAt: null,
         closedAt: null,

@@ -6,16 +6,18 @@ export const runtime = 'nodejs'
 
 export async function POST(req: Request) {
   const body = (await req.json().catch(() => null)) as
-    | { participantId?: unknown; option?: unknown }
+    | { participantId?: unknown; questionId?: unknown; option?: unknown }
     | null
 
   const participantId =
     typeof body?.participantId === 'string' ? body.participantId : ''
+  const questionId =
+    typeof body?.questionId === 'string' ? body.questionId : ''
   const option = body?.option
 
-  if (!participantId || !isOption(option)) {
+  if (!participantId || !questionId || !isOption(option)) {
     return NextResponse.json(
-      { error: 'participantId_and_option_required' },
+      { error: 'participantId_questionId_and_option_required' },
       { status: 400 }
     )
   }
@@ -23,6 +25,12 @@ export async function POST(req: Request) {
   const round = storage.getActiveRound()
   if (!round) {
     return NextResponse.json({ error: 'no_open_round' }, { status: 409 })
+  }
+
+  // Guard: question must belong to this round
+  const question = storage.getQuestion(round.id, questionId)
+  if (!question) {
+    return NextResponse.json({ error: 'question_not_found' }, { status: 404 })
   }
 
   // Check if expired
@@ -42,7 +50,8 @@ export async function POST(req: Request) {
   const response = storage.createResponse({
     roundId: round.id,
     participantId,
-    option,
+    questionId,
+    option: option as Option,
   })
 
   if (!response) {

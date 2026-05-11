@@ -10,7 +10,8 @@ export async function GET() {
     rounds: rounds.map((r) => ({
       id: r.id,
       status: r.status,
-      question: r.question,
+      questionCount: r.questions.length,
+      firstQuestion: r.questions[0]?.question ?? '',
       durationMs: r.durationMs,
       createdAt: r.createdAt,
       openedAt: r.openedAt,
@@ -19,3 +20,4 @@ export async function GET() {
     })),
   })
 }
+
