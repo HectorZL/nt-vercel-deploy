@@ -62,3 +62,4 @@ No hay worker/cron en esta demo. La ronda se auto-cierra "on demand":
 - o cuando llega una respuesta
 
 Eso mantiene el timer autoritativo sin procesos en background.
+# nt-vercel-deploy
